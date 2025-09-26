@@ -1,2 +1,2 @@
 # Neuro-Psyche
-Mini Version of the Graduation Project 
+Appathon CSE-EJUST Challenge Summer 2025
