@@ -164,7 +164,7 @@ class MRIClassifier:
         else:
             return f"Prediction: Healthy, Healthy Probability: {(1 - prob) * 100:.2f}%"
 
-    def save_model(self, output_dir, model_name="depression_classifier"):
+    def save_model(self, output_dir, model_name="Schizophrenia_classifier"):
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         model_path = output_dir / f"{model_name}.h5"
@@ -182,7 +182,7 @@ class MRIClassifier:
 def main():
     classifier = MRIClassifier(target_shape=(32, 32, 16, 120))
     root_dir = Path(__file__).parent.parent.resolve()
-    data_dir = root_dir / "model_three_depression" / "data"
+    data_dir = root_dir / "model_three_schizophrenia" / "data"
     classifier.set_data_directory(data_dir)
     history, test_results = classifier.train_and_evaluate(
         epochs=5, batch_size=2, test_size=0.2
@@ -190,7 +190,7 @@ def main():
     print("\nEvaluation Results:")
     print(f"Test Loss: {test_results['loss']:.4f}")
     print(f"Test Accuracy: {test_results['accuracy']:.4f}")
-    output_dir = root_dir / "model_three_depression" / "saved_models"
+    output_dir = root_dir / "model_three_schizophrenia" / "saved_models"
     model_path, config_path = classifier.save_model(output_dir)
     print(f"\nModel saved to: {model_path}")
     print(f"Config saved to: {config_path}")

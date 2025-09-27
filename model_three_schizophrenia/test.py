@@ -37,10 +37,10 @@ class MRIClassifier:
 def main():
     root_dir = Path(__file__).parent.parent.resolve()
     model_path = (
-        root_dir / "model_three_depression" / "saved_models" / "depression_classifier.h5"
+        root_dir / "model_three_schizophrenia" / "saved_models" / "depression_classifier.h5"
     )
     input_file_path = (
-        root_dir / "model_three_depression" / "data" / "sub-102_task-rest_bold.nii"
+        root_dir / "model_three_schizophrenia" / "data" / "sub-102_task-rest_bold.nii"
     )
 
     classifier = MRIClassifier(target_shape=(32, 32, 16, 120))
