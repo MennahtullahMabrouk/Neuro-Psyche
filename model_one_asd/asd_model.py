@@ -12,7 +12,9 @@ from pathlib import Path
 import pandas as pd
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 def preprocess_abide_dataset(data_dir):
@@ -25,12 +27,14 @@ def preprocess_abide_dataset(data_dir):
     """
     logging.info("Loading and preprocessing ABIDE dataset...")
     logging.info(f"Fetching dataset from {data_dir}...")
-    abide = datasets.fetch_abide_pcp(data_dir=data_dir, pipeline='cpac', derivatives=['func_preproc'])
+    abide = datasets.fetch_abide_pcp(
+        data_dir=data_dir, pipeline="cpac", derivatives=["func_preproc"]
+    )
     logging.info(f"Type of phenotypic data: {type(abide.phenotypic)}")
     logging.info(f"Columns in phenotypic data: {abide.phenotypic.columns}")
     logging.info(f"First entry of phenotypic data:\n{abide.phenotypic.iloc[0]}")
 
-    masker = input_data.NiftiMasker(standardize=True, mask_strategy='epi')
+    masker = input_data.NiftiMasker(standardize=True, mask_strategy="epi")
     X = []
     y = []
     total_files = len(abide.func_preproc)
@@ -38,7 +42,9 @@ def preprocess_abide_dataset(data_dir):
 
     max_features = 0
 
-    for i, (func_file, phenotypic) in enumerate(zip(abide.func_preproc, abide.phenotypic.iloc)):
+    for i, (func_file, phenotypic) in enumerate(
+        zip(abide.func_preproc, abide.phenotypic.iloc)
+    ):
         try:
             logging.info(f"Processing file {i + 1}/{total_files}: {func_file}")
             logging.info(f"Phenotypic data for file {func_file}:\n{phenotypic}")
@@ -49,15 +55,19 @@ def preprocess_abide_dataset(data_dir):
             correlation_matrix = np.corrcoef(time_series.T)
             logging.info(f"Correlation matrix shape: {correlation_matrix.shape}")
 
-            upper_triangle = correlation_matrix[np.triu_indices_from(correlation_matrix, k=1)]
+            upper_triangle = correlation_matrix[
+                np.triu_indices_from(correlation_matrix, k=1)
+            ]
             logging.info(f"Feature length for file {func_file}: {len(upper_triangle)}")
             X.append(upper_triangle)
             max_features = max(max_features, len(upper_triangle))
 
-            if 'DX_GROUP' in phenotypic:
-                y.append(phenotypic['DX_GROUP'])
+            if "DX_GROUP" in phenotypic:
+                y.append(phenotypic["DX_GROUP"])
             else:
-                logging.warning(f"Phenotypic data for file {func_file} does not contain 'DX_GROUP'. Skipping this file.")
+                logging.warning(
+                    f"Phenotypic data for file {func_file} does not contain 'DX_GROUP'. Skipping this file."
+                )
                 continue
         except Exception as e:
             logging.error(f"Error processing file {func_file}: {e}")
@@ -93,7 +103,7 @@ def augment_data(X, y, num_samples=1000):
     return np.array(synthetic_X), np.array(synthetic_y)
 
 
-def save_model(model, pca, imputer, masker, filename='model.joblib'):
+def save_model(model, pca, imputer, masker, filename="model.joblib"):
     """
     Save the trained model and preprocessing objects to disk.
     Args:
@@ -104,11 +114,13 @@ def save_model(model, pca, imputer, masker, filename='model.joblib'):
         filename (str): Path to save the model.
     """
     logging.info(f"Saving model and preprocessing objects to {filename}...")
-    joblib.dump({'model': model, 'pca': pca, 'imputer': imputer, 'masker': masker}, filename)
+    joblib.dump(
+        {"model": model, "pca": pca, "imputer": imputer, "masker": masker}, filename
+    )
     logging.info("Model and preprocessing objects saved.")
 
 
-def load_model(filename='model.joblib'):
+def load_model(filename="model.joblib"):
     """
     Load the trained model and preprocessing objects from disk.
     Args:
@@ -118,7 +130,7 @@ def load_model(filename='model.joblib'):
     """
     logging.info(f"Loading model and preprocessing objects from {filename}...")
     data = joblib.load(filename)
-    return data['model'], data['pca'], data['imputer'], data['masker']
+    return data["model"], data["pca"], data["imputer"], data["masker"]
 
 
 def preprocess_single_file(nii_file_path, masker, imputer, pca):
@@ -139,6 +151,7 @@ def preprocess_single_file(nii_file_path, masker, imputer, pca):
             return None
 
         import nibabel as nib
+
         try:
             img = nib.load(nii_file_path)
             logging.info(f"NIfTI file loaded successfully. Shape: {img.shape}")
@@ -152,7 +165,9 @@ def preprocess_single_file(nii_file_path, masker, imputer, pca):
         correlation_matrix = np.corrcoef(time_series.T)
         logging.info(f"Correlation matrix shape: {correlation_matrix.shape}")
 
-        upper_triangle = correlation_matrix[np.triu_indices_from(correlation_matrix, k=1)]
+        upper_triangle = correlation_matrix[
+            np.triu_indices_from(correlation_matrix, k=1)
+        ]
         logging.info(f"Feature length: {len(upper_triangle)}")
 
         max_features = pca.n_features_in_
@@ -166,7 +181,9 @@ def preprocess_single_file(nii_file_path, masker, imputer, pca):
         return None
 
 
-def save_predictions(nii_file_path, features, prediction, prediction_proba, output_file='predictions.csv'):
+def save_predictions(
+    nii_file_path, features, prediction, prediction_proba, output_file="predictions.csv"
+):
     """
     Save prediction results along with features and file path to a CSV file.
     Args:
@@ -178,15 +195,15 @@ def save_predictions(nii_file_path, features, prediction, prediction_proba, outp
     """
     try:
         data = {
-            'file_path': [nii_file_path],
-            'features': [features.tolist()],
-            'prediction': [prediction[0]],
-            'confidence_asd': [prediction_proba[1]],
-            'confidence_no_asd': [prediction_proba[0]]
+            "file_path": [nii_file_path],
+            "features": [features.tolist()],
+            "prediction": [prediction[0]],
+            "confidence_asd": [prediction_proba[1]],
+            "confidence_no_asd": [prediction_proba[0]],
         }
         df = pd.DataFrame(data)
         if Path(output_file).exists():
-            df.to_csv(output_file, mode='a', header=False, index=False)
+            df.to_csv(output_file, mode="a", header=False, index=False)
         else:
             df.to_csv(output_file, index=False)
         logging.info(f"Prediction saved to {output_file}")
@@ -222,10 +239,14 @@ def predict_single_file(nii_file_path, model, pca, imputer, masker, save_to_file
         prediction_proba = model.predict_proba(preprocessed_data)[0]
 
         if save_to_file:
-            save_predictions(nii_file_path, preprocessed_data, prediction, prediction_proba)
+            save_predictions(
+                nii_file_path, preprocessed_data, prediction, prediction_proba
+            )
 
         if prediction[0] == 1:
-            return f"Patient likely has ASD (Confidence: {prediction_proba[1] * 100:.2f}%)"
+            return (
+                f"Patient likely has ASD (Confidence: {prediction_proba[1] * 100:.2f}%)"
+            )
         else:
             return f"Patient does not have ASD (Confidence: {prediction_proba[0] * 100:.2f}%)"
     except Exception as e:
@@ -233,7 +254,7 @@ def predict_single_file(nii_file_path, model, pca, imputer, masker, save_to_file
         return "Error: Unable to make a prediction."
 
 
-def load_predictions(prediction_file='predictions.csv'):
+def load_predictions(prediction_file="predictions.csv"):
     """
     Load saved predictions from CSV file.
     Args:
@@ -250,7 +271,7 @@ def load_predictions(prediction_file='predictions.csv'):
         return None
 
 
-def retrain_model_with_predictions(X_train, y_train, prediction_file='predictions.csv'):
+def retrain_model_with_predictions(X_train, y_train, prediction_file="predictions.csv"):
     """
     Augment training data with saved predictions for retraining.
     Args:
@@ -265,13 +286,15 @@ def retrain_model_with_predictions(X_train, y_train, prediction_file='prediction
         logging.warning("No predictions found. Retraining with original dataset only.")
         return X_train, y_train
 
-    X_new = np.array([eval(features) for features in predictions_df['features']])
-    y_new = predictions_df['prediction'].values
+    X_new = np.array([eval(features) for features in predictions_df["features"]])
+    y_new = predictions_df["prediction"].values
 
     X_train_combined = np.vstack((X_train, X_new))
     y_train_combined = np.hstack((y_train, y_new))
 
-    logging.info(f"Combined dataset shape: X_train = {X_train_combined.shape}, y_train = {y_train_combined.shape}")
+    logging.info(
+        f"Combined dataset shape: X_train = {X_train_combined.shape}, y_train = {y_train_combined.shape}"
+    )
     return X_train_combined, y_train_combined
 
 
@@ -283,26 +306,35 @@ def main():
     """
     logging.info("Starting training script...")
 
-    data_dir = './abide'
+    data_dir = "./abide"
     X, y, masker = preprocess_abide_dataset(data_dir)
     latent_dim = 5
     logging.info(f"Dataset shape: X = {X.shape}, y = {y.shape}")
 
     logging.info("Splitting dataset into train and test sets...")
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, stratify=y, random_state=42)
-    logging.info(f"Train set shape: X_train = {X_train.shape}, y_train = {y_train.shape}")
+        X, y, test_size=0.2, stratify=y, random_state=42
+    )
+    logging.info(
+        f"Train set shape: X_train = {X_train.shape}, y_train = {y_train.shape}"
+    )
     logging.info(f"Test set shape: X_test = {X_test.shape}, y_test = {y_test.shape}")
 
-    X_train_combined, y_train_combined = retrain_model_with_predictions(X_train, y_train)
+    X_train_combined, y_train_combined = retrain_model_with_predictions(
+        X_train, y_train
+    )
 
-    synthetic_X, synthetic_y = augment_data(X_train_combined, y_train_combined, num_samples=len(X_train_combined))
+    synthetic_X, synthetic_y = augment_data(
+        X_train_combined, y_train_combined, num_samples=len(X_train_combined)
+    )
     X_train_aug = np.vstack((X_train_combined, synthetic_X))
     y_train_aug = np.hstack((y_train_combined, synthetic_y))
-    logging.info(f"Augmented train set shape: X_train_aug = {X_train_aug.shape}, y_train_aug = {y_train_aug.shape}")
+    logging.info(
+        f"Augmented train set shape: X_train_aug = {X_train_aug.shape}, y_train_aug = {y_train_aug.shape}"
+    )
 
     logging.info("Imputing missing values...")
-    imputer = SimpleImputer(strategy='mean')
+    imputer = SimpleImputer(strategy="mean")
     X_train_aug = imputer.fit_transform(X_train_aug)
     X_test = imputer.transform(X_test)
 
@@ -314,10 +346,18 @@ def main():
     logging.info(f"Encoded test set shape: X_test_encoded = {X_test_encoded.shape}")
 
     logging.info("Building and training SLP classifier...")
-    slp = MLPClassifier(hidden_layer_sizes=(32,), max_iter=200, activation='relu',
-                        solver='adam', alpha=0.01, random_state=42, early_stopping=True)
+    slp = MLPClassifier(
+        hidden_layer_sizes=(32,),
+        max_iter=200,
+        activation="relu",
+        solver="adam",
+        alpha=0.01,
+        random_state=42,
+        early_stopping=True,
+    )
 
     from sklearn.model_selection import cross_val_score
+
     cv_scores = cross_val_score(slp, X_train_encoded, y_train_aug, cv=5)
     logging.info(f"Cross-validation scores: {cv_scores}")
     logging.info(f"Mean CV Accuracy: {np.mean(cv_scores) * 100:.2f}%")
@@ -331,9 +371,9 @@ def main():
     logging.info("Classification Report:")
     print(classification_report(y_test, y_pred))
 
-    save_model(slp, pca, imputer, masker, filename='model_one_asd.joblib')
+    save_model(slp, pca, imputer, masker, filename="model_one_asd.joblib")
 
-    nii_file_path = 'model_one_asd/abide/ABIDE_pcp/cpac/nofilt_noglobal/Caltech_0051461_func_preproc.nii.gz'
+    nii_file_path = "model_one_asd/abide/ABIDE_pcp/cpac/nofilt_noglobal/Caltech_0051461_func_preproc.nii.gz"
     result = predict_single_file(nii_file_path, slp, pca, imputer, masker)
     print(result)
 

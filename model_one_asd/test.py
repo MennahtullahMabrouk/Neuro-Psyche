@@ -2,6 +2,7 @@ import nibabel as nib
 import numpy as np
 from pathlib import Path
 
+
 def count_corrupted_nii_files(directory):
     """
     Count the number of corrupted .nii.gz files in the specified directory.
