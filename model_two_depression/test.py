@@ -9,7 +9,9 @@ from nilearn.image import resample_to_img
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import joblib
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class DepressionClassifier:
@@ -30,14 +32,14 @@ class DepressionClassifier:
                 raise FileNotFoundError(f"Model directory not found at: {model_path}")
 
             logging.info(f"Loading model package from: {model_path}")
-            self.model = tf.keras.models.load_model(str(model_path / 'model.h5'))
+            self.model = tf.keras.models.load_model(str(model_path / "model.h5"))
 
-            params = joblib.load(str(model_path / 'preprocessing_params.joblib'))
-            self.max_rois = params['max_rois']
-            self.max_length = params['max_length']
-            self.label_encoder = params['label_encoder']
+            params = joblib.load(str(model_path / "preprocessing_params.joblib"))
+            self.max_rois = params["max_rois"]
+            self.max_length = params["max_length"]
+            self.label_encoder = params["label_encoder"]
 
-            self.atlas = fetch_atlas_harvard_oxford('cort-maxprob-thr25-1mm')
+            self.atlas = fetch_atlas_harvard_oxford("cort-maxprob-thr25-1mm")
             self._is_loaded = True
             logging.info("Model package loaded successfully")
             return True
@@ -60,19 +62,25 @@ class DepressionClassifier:
             logging.info(f"Preprocessing file: {file_path}")
 
             fmri_img = nib.load(str(file_path))
-            atlas_resampled = resample_to_img(self.atlas.maps, fmri_img, interpolation='nearest')
+            atlas_resampled = resample_to_img(
+                self.atlas.maps, fmri_img, interpolation="nearest"
+            )
             masker = NiftiLabelsMasker(labels_img=atlas_resampled, standardize=True)
             time_series = masker.fit_transform(fmri_img)
 
             if time_series.shape[1] < self.max_rois:
                 missing_rois = self.max_rois - time_series.shape[1]
-                time_series = np.hstack([time_series, np.zeros((time_series.shape[0], missing_rois))])
+                time_series = np.hstack(
+                    [time_series, np.zeros((time_series.shape[0], missing_rois))]
+                )
 
-            time_series = pad_sequences([time_series],
-                                        maxlen=self.max_length,
-                                        dtype='float32',
-                                        padding='post',
-                                        value=0)
+            time_series = pad_sequences(
+                [time_series],
+                maxlen=self.max_length,
+                dtype="float32",
+                padding="post",
+                value=0,
+            )
             return time_series.reshape(1, self.max_length, self.max_rois)
 
         except Exception as e:
@@ -102,12 +110,20 @@ class DepressionClassifier:
             logging.error(error_msg)
             return error_msg
 
+
 def main():
     """Test function for standalone execution"""
     try:
         project_root = Path(__file__).parent.parent
         model_path = project_root / "model_two_depression" / "depression_model"
-        input_file_path = project_root / "model_two_depression" / "Data" / "sub-01" / "func" / "sub-01_task-rest_bold.nii.gz"
+        input_file_path = (
+            project_root
+            / "model_two_depression"
+            / "Data"
+            / "sub-01"
+            / "func"
+            / "sub-01_task-rest_bold.nii.gz"
+        )
 
         classifier = DepressionClassifier()
         if not classifier.load_model_package(model_path):
