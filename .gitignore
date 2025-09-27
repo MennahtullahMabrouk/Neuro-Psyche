@@ -138,15 +138,6 @@ data/external/
 *.xlsx
 *.xls
 
-# Model files (can be large)
-models/
-*.h5
-*.keras
-*.pkl
-*.joblib
-*.pt
-*.pth
-
 # Logs
 logs/
 *.log
@@ -158,10 +149,6 @@ config/secrets.json
 # Temporary files
 temp/
 tmp/
-
-# Output directories
-output/
-results/
 
 # Jupyter
 .jupyter/
